@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MailCraft - AI Email Draft Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sky: { light: '#38bdf8', DEFAULT: '#0ea5e9', dark: '#0284c7' },
+                        dark: { 900: '#0a0c14', 800: '#0f1221', 700: '#161b2e', 600: '#1e2540' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .copy-flash { animation: flash 0.3s ease; }
+        @keyframes flash { 50% { background: rgba(14,165,233,0.15); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f1221; }
+        ::-webkit-scrollbar-thumb { background: #0ea5e9; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-dark-900 text-gray-300 min-h-screen">
+    <div class="max-w-5xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold mb-2">
+                <span class="text-sky-light">Mail</span><span class="text-sky">Craft</span>
+            </h1>
+            <p class="text-gray-500">Generate perfect professional emails with AI</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <!-- Input Form -->
+            <div class="lg:col-span-2">
+                <div class="bg-dark-800 rounded-xl border border-dark-600 p-6 space-y-4 sticky top-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">What's the email about?</label>
+                        <textarea id="context" rows="4" placeholder="Describe the situation, what you want to say, any key details...&#10;&#10;Example: I want to reach out to a potential client about our web design services. They're a local bakery that needs a modern website."
+                                  class="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-sky transition resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Recipient <span class="text-gray-600">(optional)</span></label>
+                        <input type="text" id="recipient" placeholder="e.g. John, the marketing manager"
+                               class="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-sky transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Your Name <span class="text-gray-600">(optional)</span></label>
+                        <input type="text" id="your-name" placeholder="e.g. Sarah"
+                               class="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-sky transition">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Tone</label>
+                            <select id="tone" class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-sky">
+                                <option value="formal">Formal</option>
+                                <option value="casual">Casual</option>
+                                <option value="persuasive">Persuasive</option>
+                                <option value="friendly">Friendly</option>
+                                <option value="assertive">Assertive</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Type</label>
+                            <select id="email-type" class="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2.5 text-sm text-gray-200 focus:outline-none focus:border-sky">
+                                <option value="general">General</option>
+                                <option value="cold_outreach">Cold Outreach</option>
+                                <option value="follow_up">Follow Up</option>
+                                <option value="proposal">Proposal</option>
+                                <option value="complaint">Complaint</option>
+                                <option value="thank_you">Thank You</option>
+                                <option value="introduction">Introduction</option>
+                                <option value="meeting_request">Meeting Request</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button onclick="generateDraft()" id="gen-btn"
+                            class="w-full bg-sky hover:bg-sky-dark text-white font-medium py-3 rounded-lg transition text-sm">
+                        Generate Drafts
+                    </button>
+                </div>
+            </div>
+
+            <!-- Output -->
+            <div class="lg:col-span-3">
+                <!-- Loading -->
+                <div id="loading" class="hidden text-center py-20">
+                    <div class="inline-flex flex-col items-center gap-4">
+                        <div class="w-10 h-10 border-3 border-sky border-t-transparent rounded-full animate-spin" style="border-width:3px"></div>
+                        <div>
+                            <p class="text-gray-400 font-medium">Crafting your emails...</p>
+                            <p class="text-gray-600 text-sm mt-1">Generating multiple variations</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="text-center py-20">
+                    <div class="text-5xl mb-4 opacity-30">&#9993;</div>
+                    <p class="text-gray-600">Fill in the details and click Generate</p>
+                    <p class="text-gray-700 text-sm mt-1">You'll get multiple draft variations to choose from</p>
+                </div>
+
+                <!-- Drafts -->
+                <div id="drafts" class="hidden space-y-6 fade-in"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function generateDraft() {
+            const context = document.getElementById('context').value.trim();
+            if (!context) { alert('Please describe what the email is about'); return; }
+
+            const btn = document.getElementById('gen-btn');
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('drafts').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                const res = await fetch('/draft', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        context,
+                        recipient: document.getElementById('recipient').value,
+                        your_name: document.getElementById('your-name').value,
+                        tone: document.getElementById('tone').value,
+                        email_type: document.getElementById('email-type').value,
+                        variations: 2,
+                    })
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Generation failed');
+                }
+                const data = await res.json();
+                renderDrafts(data.variations);
+            } catch (err) {
+                alert('Error: ' + err.message);
+                document.getElementById('empty-state').classList.remove('hidden');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+                btn.disabled = false;
+                btn.textContent = 'Generate Drafts';
+            }
+        }
+
+        function renderDrafts(variations) {
+            const container = document.getElementById('drafts');
+            container.innerHTML = '';
+
+            variations.forEach((v, i) => {
+                const card = document.createElement('div');
+                card.className = 'bg-dark-800 rounded-xl border border-dark-600 overflow-hidden';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between px-5 py-3 border-b border-dark-600">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-sky/20 text-sky text-xs font-semibold px-2.5 py-0.5 rounded-full">Variation ${i + 1}</span>
+                            ${v.subject ? `<span class="text-sm text-gray-400">Subject: <span class="text-gray-300">${escapeHtml(v.subject)}</span></span>` : ''}
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="copyDraft(${i})" class="text-xs bg-dark-600 hover:bg-dark-700 text-gray-400 hover:text-sky px-3 py-1.5 rounded-lg transition">Copy</button>
+                            <button onclick="copySubject(${i})" class="text-xs bg-dark-600 hover:bg-dark-700 text-gray-400 hover:text-sky px-3 py-1.5 rounded-lg transition">Copy Subject</button>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div id="draft-body-${i}" class="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">${escapeHtml(v.body)}</div>
+                    </div>`;
+                container.appendChild(card);
+            });
+
+            container.classList.remove('hidden');
+            window._drafts = variations;
+        }
+
+        function copyDraft(idx) {
+            const draft = window._drafts[idx];
+            const text = (draft.subject ? `Subject: ${draft.subject}\n\n` : '') + draft.body;
+            navigator.clipboard.writeText(text);
+            const el = document.getElementById('draft-body-' + idx);
+            el.classList.add('copy-flash');
+            setTimeout(() => el.classList.remove('copy-flash'), 300);
+        }
+
+        function copySubject(idx) {
+            const draft = window._drafts[idx];
+            navigator.clipboard.writeText(draft.subject || '');
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
